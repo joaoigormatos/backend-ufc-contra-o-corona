@@ -3,21 +3,25 @@ const uniqueValidator = require('mongoose-unique-validator');
 
 const UserSchema = new mongoose.Schema(
   {
-    urlImg: { type: String, required: true },
-    responsible: {
+    // responsible: {
+    //   type: mongoose.Types.ObjectId,
+    //   ref: 'User',
+    // },
+    urlImg: { type: String },
+    category_ref: {
       type: mongoose.Types.ObjectId,
-      ref: 'User',
+      ref: 'Category',
     },
-    situation: { type: String, required: true },
-    observation: { type: String, required: true },
+    fullName: { type: String, required: true },
+    institution: { type: String, required: true },
+    email: { type: String, required: true },
 
     initialDate: { type: Date, required: true },
     finalDate: { type: Date, required: true },
-    audience: { type: String, required: true },
 
-    title: { type: String, required: true },
+    title: { type: String, required: true, unique: true },
     subtitle: { type: String, required: true },
-    content: { type: String, required: true },
+    description: { type: String, required: true },
 
     // read: { type: Boolean, required: true },
   },

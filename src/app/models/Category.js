@@ -3,20 +3,7 @@ const uniqueValidator = require('mongoose-unique-validator');
 
 const UserSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true },
-    subtitle: { type: String, required: true },
-    responsible: {
-      type: mongoose.Types.ObjectId,
-      ref: 'User',
-    },
-    situation: { type: String, required: true },
-    listOfProductions: [
-      {
-        type: mongoose.Types.ObjectId,
-        ref: 'ProductionData',
-      },
-    ],
-
+    name: { type: String, required: true, unique: true },
     // read: { type: Boolean, required: true },
   },
   {
@@ -28,18 +15,24 @@ UserSchema.plugin(uniqueValidator, {
   message: 'Error, expected {PATH} to be unique.',
 });
 
-module.exports = mongoose.model('Production', UserSchema);
+module.exports = mongoose.model('Category', UserSchema);
 
 // const Sequelize = require('sequelize');
 // const { Model } = Sequelize;
 
-// class Production extends Model {
+// class Action extends Model {
 //   static init(sequelize) {
 //     super.init(
 //       {
 //         title: Sequelize.STRING,
 //         subtitle: Sequelize.STRING,
-//         situation: Sequelize.STRING,
+//         content: {
+//           type: Sequelize.BLOB,
+//           get() {
+//             return this.getDataValue('content').toString('utf8'); // or whatever encoding is right
+//           },
+//         },
+//         image_url: Sequelize.STRING,
 //       },
 //       {
 //         sequelize,
@@ -50,11 +43,6 @@ module.exports = mongoose.model('Production', UserSchema);
 //   }
 
 //   static associate(models) {
-//     this.hasMany(models.ProductionData, {
-//       foreignKey: 'production_id',
-//       as: 'production',
-//     });
-
 //     this.belongsTo(models.User, {
 //       foreignKey: 'user_id',
 //       as: 'user',
@@ -62,4 +50,4 @@ module.exports = mongoose.model('Production', UserSchema);
 //   }
 // }
 
-// module.exports = Production;
+// module.exports = Action;

@@ -4,48 +4,47 @@ const authMiddleware = require('./app/middlewares/auth');
 
 const UserController = require('./app/controllers/UserController');
 const ActionController = require('./app/controllers/ActionController');
+const CategoryController = require('./app/controllers/CategoryController');
+const FilterController = require('./app/controllers/FilterController');
 const SessionController = require('./app/controllers/SessionController');
-const ProductionController = require('./app/controllers/ProductionController');
-const ProductionDataController = require('./app/controllers/ProductionDataController');
 
-const NotificationController = require('./app/controllers/NotificationController');
+const multer = require('multer');
+const { upload } = require('./config/fileupload');
+// const upload = multer(uploadConfig.upload);
 
 const routes = new Router();
+
+routes.post('/actions2', upload.single('file'), ActionController.store);
 
 routes.post('/sessions', SessionController.store);
 
 routes.get('/', (req, res) => {
-  return res.send('hello');
+  return res.send('Root');
 });
+routes.post('/users', UserController.store);
+routes.post('/action/filter', FilterController.show);
 
+// -----------------------------------------------------------
+// routes.use(authMiddleware);
+
+routes.post('/actions', ActionController.store);
 routes.get('/action', ActionController.show);
 routes.get('/actions', ActionController.index);
 routes.put('/actions', ActionController.update);
 routes.delete('/actions', ActionController.destroy);
 
-routes.post('/users', UserController.store);
-// routes.use(authMiddleware);
+routes.post('/category', CategoryController.store);
+routes.get('/category', CategoryController.show);
+routes.get('/categories', CategoryController.index);
+routes.put('/category', CategoryController.update);
+routes.delete('/category', CategoryController.destroy);
 
 routes.get('/users', UserController.index);
 routes.get('/users/:id', UserController.show);
 routes.put('/users/:id', UserController.update);
 routes.delete('/users/:id', UserController.destroy);
 
-routes.post('/actions', ActionController.store);
 // routes.put('/actions/:id', ActionController.update);
 // routes.delete('/actions/:id', ActionController.destroy);
-
-routes.post('/notifications', NotificationController.store);
-
-routes.post('/productions', ProductionController.store);
-routes.get('/productions', ProductionController.index);
-routes.get('/production', ProductionController.show);
-routes.put('/productions', ProductionController.update);
-routes.delete('/productions', ProductionController.destroy);
-
-routes.post('/production_data', ProductionDataController.store);
-routes.get('/production_data/:id', ProductionDataController.index);
-routes.put('/production_data/:id', ProductionDataController.update);
-routes.delete('/production_data/:id', ProductionDataController.destroy);
 
 module.exports = routes;

@@ -1,46 +1,41 @@
 const Action = require('../models/Action');
-const User = require('../models/User');
+const Category = require('../models/Category');
 const Yup = require('yup');
 
 class ActionController {
   async store(req, res) {
     const schema = Yup.object().shape({
-      urlImg: Yup.string().required(),
-      responsible_id: Yup.string(),
-      situation: Yup.string().required(),
+      urlImg: Yup.string(),
+      category: Yup.string(),
+      fullName: Yup.string().required(),
+      institution: Yup.string().required(),
+      email: Yup.string().required(),
 
-      initialDate: Yup.string().required(),
-      finalDate: Yup.string().required(),
-      audience: Yup.string().required(),
+      initialDate: Yup.date().required(),
+      finalDate: Yup.date().required(),
 
       title: Yup.string().required(),
       subtitle: Yup.string().required(),
-      content: Yup.string().required(),
+      description: Yup.string().required(),
     });
 
     if (!(await schema.isValid(req.body))) {
       return res.status(401).json({ error: 'Validation fails!' });
     }
 
-    const responsible = req.body.responsible_id || req.userId;
-
-    const exists = await User.findOne({ _id: responsible });
-
-    if (!exists)
-      return res
-        .status(400)
-        .json({ message: "User don't exists, try a valid _id" });
-
     const {
-      title,
-      subtitle,
-      content,
       urlImg,
-      situation,
-      observation,
+      category,
+      fullName,
+      institution,
+      email,
+
       initialDate,
       finalDate,
-      audience,
+
+      title,
+      subtitle,
+      description,
     } = req.body;
 
     const existsTitle = await Action.findOne({ title });
@@ -50,18 +45,28 @@ class ActionController {
         .status(400)
         .json({ message: 'Title already exists, try other title' });
 
+    const existCategory = await Category.findOne({ name: category });
+
+    if (!existCategory) {
+      return res.status(400).json({ message: 'Wrong Category, try again' });
+    }
+
+    const category_ref = existCategory._id;
+
     try {
       const action = await Action.create({
         urlImg,
-        responsible,
-        situation,
-        observation,
+        category_ref,
+        fullName,
+        institution,
+        email,
+
         initialDate,
         finalDate,
-        audience,
+
         title,
         subtitle,
-        content,
+        description,
       });
 
       await action.save();
@@ -83,7 +88,11 @@ class ActionController {
 
   async show(req, res) {
     const { title } = req.query;
-    const action = await Action.findOne({ title: { $eq: title } });
+    if (!title) return res.status(400).json({ message: 'Title not provided' });
+    const titleRefactored = title.replace(/_/gi, ' ');
+    const action = await Action.find({
+      title: { $regex: `${titleRefactored}`, $options: 'i' },
+    });
 
     if (!action) {
       return res.status(400).json({ error: 'Action not founded!' });
@@ -95,54 +104,60 @@ class ActionController {
   async update(req, res) {
     const schema = Yup.object().shape({
       urlImg: Yup.string(),
-      responsible_id: Yup.string(),
-      situation: Yup.string(),
+      category_ref: Yup.string(),
+      fullName: Yup.string(),
+      institution: Yup.string(),
+      email: Yup.string(),
 
-      initialDate: Yup.string(),
-      finalDate: Yup.string(),
-      audience: Yup.string(),
+      initialDate: Yup.date(),
+      finalDate: Yup.date(),
 
       title: Yup.string(),
       subtitle: Yup.string(),
-      content: Yup.string(),
+      description: Yup.string(),
     });
 
     if (!(await schema.isValid(req.body))) {
       return res.status(401).json({ error: 'Validation fails!' });
     }
+    const { title } = req.query;
+    if (!title) return res.status(400).json({ message: 'Title not provided' });
+    const titleRefactored = title.replace(/_/gi, ' ');
 
     try {
-      const action = await Action.findOne({ title: req.query.title });
+      const action = Action.findOne({ title: titleRefactored });
+
       if (!action) {
+        return res.status(400).json({ message: 'Action not found' });
+      }
+
+      const { category_ref } = req.body;
+      const existCategory = await Category.findById({ _id: category_ref });
+
+      if (!existCategory) {
         return res
-          .status(400)
-          .json({ message: "Action don't exists, try a valid title" });
+          .status(403)
+          .json({ message: 'Category not found, try gain' });
       }
+
       action.set(req.body);
-      const responsible = req.body.responsible_id;
-
-      const exists = await User.findOne({ _id: responsible });
-
-      if (exists) {
-        action.set('responsible', responsible);
-      }
-
-      action.save();
-
-      return res.json(action);
+      await action.updateOne();
+      return res.json({ message: 'Success' });
     } catch (error) {
-      return res.status(400).json({ error: 'Error on updating action!' });
+      return res.status(400).json({ message: 'Update fails' });
     }
   }
 
   async destroy(req, res) {
     const { title } = req.query;
+    if (!title) return res.status(400).json({ message: 'Title not provided' });
+    const titleRefactored = title.replace(/_/gi, ' ');
 
     if (!title) {
       return res.status(400).json({ error: 'Validation fails!' });
     }
     try {
-      const action = await Action.findOne({ title });
+      const action = await Action.findOne({ title: titleRefactored });
 
       action.remove();
 
